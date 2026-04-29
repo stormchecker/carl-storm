@@ -1,7 +1,4 @@
 **/config.h
-**/CompileInfo.cpp
-**/CMakeOptions.cpp
-**/CMakeOptions.h
 /src/carl/config.h
 #Visual Studio files
 *.[Oo]bj

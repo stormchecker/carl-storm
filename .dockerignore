@@ -6,9 +6,6 @@ Dockerfile
 .gitignore
 #The remainder is based on .gitignore
 **/config.h
-**/CompileInfo.cpp
-**/CMakeOptions.cpp
-**/CMakeOptions.h
 /src/carl/config.h
 #Visual Studio files
 *.[Oo]bj

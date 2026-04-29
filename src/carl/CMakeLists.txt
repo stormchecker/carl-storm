@@ -1,8 +1,5 @@
 set(LIB_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 
-# include util in library.
-add_subdirectory(util)
-
 include(GNUInstallDirs)
 # Configure all .in files
 file(GLOB_RECURSE carl_lib_tpl "*.in")
