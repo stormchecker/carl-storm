@@ -10,9 +10,3 @@ Basic concepts
 - @subpage polynomials
 - @subpage formulas
 
-
-Tutorial
----------------------
-
-There are some introductory code examples how CArL can be used.
-You find them at @subpage tutorial .

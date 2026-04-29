@@ -1,5 +1,0 @@
-/**
- * Auto generated file config.h from config.h.in.
- */
-
-#cmakedefine CARL_USE_MPFR_FLOAT
