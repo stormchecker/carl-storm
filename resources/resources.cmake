@@ -140,7 +140,7 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 
 ##### Googletest
-if(PROJECT_IS_TOP_LEVEL)
+if(PROJECT_IS_TOP_LEVEL AND CARL_BUILD_TESTS)
 	##### GTest
 	if(NOT GTEST_FOUND)
 		# Manual commit hash used in gtest.cmake to fix compiler warning
