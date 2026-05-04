@@ -22,7 +22,7 @@ struct IntervalContent {
     std::list<Polynomial> sturmSequence;
     std::size_t refinementCount;
 
-    Polynomial replaceVariable(const Polynomial& p) const {
+    static Polynomial replaceVariable(const Polynomial& p) {
         return p.replaceVariable(auxVariable);
     }
 
