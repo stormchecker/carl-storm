@@ -534,6 +534,31 @@ TEST(FactorizedPolynomial, Equality) {
     EXPECT_EQ(fpEq6 == fp2, true);
 }
 
+TEST(FactorizedPolynomial, Comparison) {
+    carl::VariablePool::getInstance().clear();
+    StringParser sp;
+    sp.setVariables({"x"});
+
+    // FPol with no factorization, coefficient() == 3.
+    FPol fpConst((Rational)3);
+
+    EXPECT_EQ((Rational)5 < fpConst, false);
+    EXPECT_EQ((Rational)2 < fpConst, true);
+    EXPECT_EQ(fpConst < (Rational)5, true);
+    EXPECT_EQ(fpConst < (Rational)2, false);
+
+    // FPol with a non-trivial factorization
+    Pol px = sp.parseMultivariatePolynomial<Rational>("x");
+    Pol pxp1 = sp.parseMultivariatePolynomial<Rational>("x+1");
+    std::shared_ptr<CachePol> pCache(new CachePol);
+    FPol fx(px, pCache);
+    FPol fxp1(pxp1, pCache);
+    FPol factored = fx * fxp1;
+
+    EXPECT_EQ((Rational)100 < factored, true);
+    EXPECT_EQ(factored < (Rational)100, false);
+}
+
 TEST(FactorizedPolynomial, Evaluation) {
     carl::VariablePool::getInstance().clear();
     Variable x = freshRealVariable("x");

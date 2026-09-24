@@ -77,6 +77,61 @@ TEST(RationalFunction, Construction) {
     rf4.simplify();
     std::cout << rf4 << std::endl;
 }
+TEST(RationalFunction, Comparison) {
+    // carl::VariablePool::getInstance().clear();
+    StringParser sp;
+    sp.setVariables({"x", "y"});
+
+    Pol p1 = sp.parseMultivariatePolynomial<Rational>("x+(-1)*y");
+    Pol p2 = sp.parseMultivariatePolynomial<Rational>("x+y");
+    Pol p3 = sp.parseMultivariatePolynomial<Rational>("x");
+    Pol p4 = sp.parseMultivariatePolynomial<Rational>("x+1");
+    Pol p5 = sp.parseMultivariatePolynomial<Rational>("y");
+    Pol p6 = sp.parseMultivariatePolynomial<Rational>("1");
+    Pol p7 = sp.parseMultivariatePolynomial<Rational>("2");
+    Pol p8 = sp.parseMultivariatePolynomial<Rational>("3");
+
+    std::shared_ptr<CachePol> pCache(new CachePol);
+    FPol fp1(p1, pCache);
+    FPol fp2(p2, pCache);
+    FPol fp3(p3, pCache);
+    FPol fp4(p4, pCache);
+    FPol fp5(p5, pCache);
+    FPol fp6(p6, pCache);
+    FPol fp7(p7, pCache);
+    FPol fp8(p8, pCache);
+
+    RFactFunc f(fp1, fp2);  // (x - y) / (x + y)
+    RFactFunc g(fp3, fp4);  // x / (x + 1)
+    RFactFunc h(fp1, fp5);  // (x - y) / y
+
+    EXPECT_FALSE(f < f);
+    EXPECT_FALSE(g < g);
+    EXPECT_FALSE(h < h);
+    EXPECT_FALSE((f < g) && (g < f));
+    EXPECT_FALSE((g < h) && (h < g));
+    EXPECT_FALSE((f < h) && (h < f));
+    EXPECT_TRUE((f < g) || (g < f));
+    EXPECT_TRUE((g < h) || (h < g));
+    EXPECT_TRUE((f < h) || (h < f));
+    // Transitivity
+    EXPECT_TRUE(!(f < g && g < h) || (f < h));
+    EXPECT_TRUE(!(f < h && h < g) || (f < g));
+    EXPECT_TRUE(!(g < f && f < h) || (g < h));
+    EXPECT_TRUE(!(g < h && h < f) || (g < f));
+    EXPECT_TRUE(!(h < f && f < g) || (h < g));
+    EXPECT_TRUE(!(h < g && g < f) || (h < f));
+
+    // Numeric ordering of constants must be preserved (not just structural comparison).
+    RFactFunc half(fp6, fp7);   // 1/2
+    RFactFunc third(fp6, fp8);  // 1/3
+    EXPECT_FALSE(half < third);
+    EXPECT_TRUE(third < half);
+    EXPECT_TRUE(half < f);
+    EXPECT_FALSE(f < half);
+    EXPECT_TRUE(third < g);
+    EXPECT_FALSE(g < third);
+}
 
 TEST(RationalFunction, Multiplication) {
     // carl::VariablePool::getInstance().clear();

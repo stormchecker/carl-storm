@@ -668,8 +668,13 @@ bool operator==(const FactorizedPolynomial<P>& _lhs, const typename FactorizedPo
 }
 
 template<typename P>
-bool operator<(const FactorizedPolynomial<P>& _lhs, const typename P::CoeffType& _rhs) {
+bool operator<(const FactorizedPolynomial<P>& _lhs, const typename FactorizedPolynomial<P>::CoeffType& _rhs) {
     return !existsFactorization(_lhs) && _lhs.coefficient() < _rhs;
+}
+
+template<typename P>
+bool operator<(const typename FactorizedPolynomial<P>::CoeffType& _lhs, const FactorizedPolynomial<P>& _rhs) {
+    return existsFactorization(_rhs) || _lhs < _rhs.coefficient();
 }
 
 template<typename P>

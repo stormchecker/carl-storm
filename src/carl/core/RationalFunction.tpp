@@ -364,7 +364,11 @@ bool operator<(const RationalFunction<Pol, AS>& lhs, const RationalFunction<Pol,
     }
     if (rhs.isConstant())
         return false;
-    return lhs.nominatorAsPolynomial() * rhs.denominatorAsPolynomial() < rhs.nominatorAsPolynomial() * lhs.denominatorAsPolynomial();
+    if (lhs.nominatorAsPolynomial() < rhs.nominatorAsPolynomial())
+        return true;
+    if (rhs.nominatorAsPolynomial() < lhs.nominatorAsPolynomial())
+        return false;
+    return lhs.denominatorAsPolynomial() < rhs.denominatorAsPolynomial();
 }
 
 template<typename Pol, bool AS>

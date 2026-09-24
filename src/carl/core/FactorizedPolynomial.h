@@ -806,9 +806,7 @@ template<typename P>
 bool operator<(const FactorizedPolynomial<P>& _lhs, const typename FactorizedPolynomial<P>::CoeffType& _rhs);
 
 template<typename P>
-inline bool operator<(const typename FactorizedPolynomial<P>::CoeffType& _lhs, const FactorizedPolynomial<P>& _rhs) {
-    return _rhs < _lhs;
-}
+bool operator<(const typename FactorizedPolynomial<P>::CoeffType& _lhs, const FactorizedPolynomial<P>& _rhs);
 /// @}
 
 /// @name Less or equal comparison operators
