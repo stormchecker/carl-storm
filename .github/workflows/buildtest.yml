@@ -22,6 +22,7 @@ jobs:
     # Build and run with different compilers (GCC, Clang)
     # Run on latest Archlinux version to get most recent compiler versions
     # Run on alpine to test with muslc (an glibc alternative).
+    # Run on Fedora Rawhide with cln/ginac built from source using the newest available Clang
     name: Compiler Tests (${{ matrix.config.name }} on ${{ matrix.config.distro }}, ${{ matrix.config.build_type }})
     runs-on: ubuntu-latest
     strategy:
@@ -44,6 +45,12 @@ jobs:
              cmake_args: "-DCARL_WARNING_AS_ERROR=ON",
              packages: "",
              distro: "alpine"
+            }
+          - {name: "Clang (CLN/Ginac from source)",
+             build_type: "Debug",
+             cmake_args: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCARL_WARNING_AS_ERROR=ON",
+             packages: "",
+             distro: "fedora-rawhide"
             }
     steps:
       - name: Git clone

@@ -1,0 +1,94 @@
+# Dockerfile for Carl-storm on Fedora Rawhide
+# with CLN/Ginac built from source
+#############################################
+# The Docker image can be built by executing:
+# docker build -t yourusername/carl-storm -f .github/workflows/Dockerfile.fedora-rawhide .
+# A different base image can be set from the commandline with:
+# --build-arg BASE_IMAGE=<new_base_image>
+
+# Set base image
+ARG BASE_IMAGE=fedora:rawhide
+FROM $BASE_IMAGE
+LABEL org.opencontainers.image.authors="dev@stormchecker.org"
+
+
+# Configuration arguments
+#########################
+# The arguments can be set from the commandline with:
+# --build-arg <arg_name>=<value>
+
+# CMake build type
+ARG build_type=Release
+# Specify number of threads to use for parallel compilation
+ARG no_threads=2
+# Specify additional CMake arguments for Carl-storm
+ARG cmake_args=""
+# Additional Fedora packages
+ARG packages=""
+
+# Pin the exact cln/ginac versions carl-storm currently targets
+ARG CLN_VERSION=1.3.7
+ARG GINAC_VERSION=1.8.10
+
+
+# Install dependencies
+######################
+RUN dnf install -y \
+    autoconf \
+    automake \
+    bzip2 \
+    clang \
+    cmake \
+    gcc \
+    gcc-c++ \
+    git \
+    libtool \
+    make \
+    wget \
+    which \
+    boost-devel \
+    gmp-devel \
+    gmp-c++ \
+    $packages
+
+
+# Build cln and ginac from source with Clang
+#############################################
+RUN cd /opt \
+ && wget -q "https://www.ginac.de/CLN/cln-${CLN_VERSION}.tar.bz2" \
+ && tar xjf "cln-${CLN_VERSION}.tar.bz2" \
+ && cd "cln-${CLN_VERSION}" \
+ && CC=clang CXX=clang++ ./configure --prefix=/usr/local \
+ && make -j $no_threads \
+ && make install \
+ && ldconfig
+
+RUN cd /opt \
+ && wget -q "https://www.ginac.de/ginac-${GINAC_VERSION}.tar.bz2" \
+ && tar xjf "ginac-${GINAC_VERSION}.tar.bz2" \
+ && cd "ginac-${GINAC_VERSION}" \
+ && CC=clang CXX=clang++ PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig ./configure --prefix=/usr/local \
+ && make -j $no_threads \
+ && make install \
+ && ldconfig
+
+
+# Build Carl-storm
+##################
+RUN mkdir /opt/carl
+WORKDIR /opt/carl
+
+# Copy the content of the current local Carl-storm repository into the Docker image
+COPY . .
+
+# Switch to build directory
+RUN mkdir -p /opt/carl/build
+WORKDIR /opt/carl/build
+
+# Configure Carl-storm
+RUN cmake -DCMAKE_BUILD_TYPE=$build_type \
+          -DCARL_PORTABLE=ON \
+          $cmake_args ..
+
+# Build Carl library
+RUN make lib_carl -j $no_threads

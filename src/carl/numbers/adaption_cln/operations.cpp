@@ -114,10 +114,8 @@ std::pair<cln::cl_RA, cln::cl_RA> sqrt_fast(const cln::cl_RA& a) {
         return std::make_pair(exact_root, exact_root);
     } else {
         // compute an approximation with sqrt(). we can assume that the surrounding integers contain the actual root.
-        // auto factor = cln::integer_length(cln::denominator(a)) - cln::integer_length(cln::numerator(a));
-        // if (cln::oddp(factor)) factor += 1;
-        cln::cl_I lower = cln::floor1(cln::sqrt(toLF(a)));
-        cln::cl_I upper = lower + 1;
+        cln::cl_I upper = cln::ceiling1(cln::sqrt(toLF(a)));
+        cln::cl_I lower = upper - 1;
         assert(cln::expt_pos(lower, 2) < a);
         assert(cln::expt_pos(upper, 2) > a);
         return std::make_pair(lower, upper);
