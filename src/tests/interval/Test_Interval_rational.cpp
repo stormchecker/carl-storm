@@ -6,6 +6,14 @@ using namespace carl;
 
 typedef Interval<Rational> clRA_Interval;
 
+TEST(IntervalGmpRationalTest, isNan) {
+    using Interval = Interval<Rational>;
+    EXPECT_FALSE(Interval::unboundedInterval().isNan());
+    EXPECT_FALSE(Interval::zeroInterval().isNan());
+    EXPECT_FALSE(Interval(Rational(1) / Rational(2), Rational(3)).isNan());
+    EXPECT_FALSE(Interval::emptyInterval().isNan());
+}
+
 template<typename T>
 class IntervalRationalTest : public testing::Test {};
 

@@ -937,7 +937,12 @@ class Interval : public policies<Number, Interval<Number>> {
     }
 
     inline bool isNan() const {
-        return (std::isnan(mContent.lower()) || std::isnan(mContent.upper()));
+        if constexpr (is_float<Number>::value) {
+            return (std::isnan(mContent.lower()) || std::isnan(mContent.upper()));
+        } else {
+            // Exact number types have no NaN representation.
+            return false;
+        }
     }
 
     /**
