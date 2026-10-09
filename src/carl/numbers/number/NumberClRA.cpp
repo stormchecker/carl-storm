@@ -180,10 +180,8 @@ std::pair<Number<cln::cl_RA>, Number<cln::cl_RA>> Number<cln::cl_RA>::sqrt_fast(
         return std::make_pair(Number(exact_root), Number(exact_root));
     } else {
         // compute an approximation with sqrt(). we can assume that the surrounding integers contain the actual root.
-        // auto factor = cln::integer_length(cln::denominator(a)) - cln::integer_length(cln::numerator(a));
-        // if (cln::oddp(factor)) factor += 1;
-        cln::cl_I lower = cln::floor1(cln::sqrt(toLF(mData)));
-        cln::cl_I upper = lower + 1;
+        cln::cl_I upper = cln::ceiling1(cln::sqrt(toLF(mData)));
+        cln::cl_I lower = upper - 1;
         assert(cln::expt_pos(lower, 2) < mData);
         assert(cln::expt_pos(upper, 2) > mData);
         return std::make_pair(Number(lower), Number(upper));

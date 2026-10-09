@@ -17,8 +17,11 @@ namespace eigen {
 
 std::vector<double> root_approximation(const std::vector<double>& coeffs) {
     using Index = Eigen::MatrixXd::Index;
+    if (coeffs.size() <= 1) {
+        return {};
+    }
     // Create companion matrix
-    uint degree = coeffs.size();
+    uint degree = coeffs.size() - 1;
     Eigen::MatrixXd m = Eigen::MatrixXd::Zero(Index(degree), Index(degree));
     m(0, Index(degree) - 1) = -coeffs[0] / coeffs[degree];
     for (uint i = 1; i < degree; ++i) {
