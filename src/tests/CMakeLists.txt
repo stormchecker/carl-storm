@@ -9,6 +9,7 @@ add_dependencies(TestCommon carl_resources lib_carl GTest::gtest_main)
 # Unit Tests
 ################################
 add_subdirectory(util)
+add_subdirectory(singleton)
 add_subdirectory(numbers)
 add_subdirectory(core)
 add_subdirectory(formula)
