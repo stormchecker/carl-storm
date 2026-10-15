@@ -64,6 +64,8 @@ option( CARL_USE_MPFR_FLOAT "Use the mpfr implementation of floating point numbe
 export_option(CARL_USE_MPFR_FLOAT)
 set(CARL_EIGEN_GIT_TAG "5.0" CACHE STRING "Git tag to use for Eigen.")
 MARK_AS_ADVANCED(CARL_EIGEN_GIT_TAG)
+set(CARL_EIGEN_SOURCE_DIR "" CACHE PATH "Existing Eigen source directory (containing Eigen/) to use instead of downloading Eigen.")
+MARK_AS_ADVANCED(CARL_EIGEN_SOURCE_DIR)
 option( CARL_PORTABLE "Enable portable build without hardware-specific compiler flags." OFF)
 export_option(CARL_PORTABLE)
 option( CARL_BUILD_STATIC "Build the static library as well" OFF )
