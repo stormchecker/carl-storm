@@ -33,7 +33,10 @@ template<typename Coefficient>
 using UnivariatePolynomialPtr = std::shared_ptr<UnivariatePolynomial<Coefficient>>;
 
 template<typename Coefficient>
-using FactorMap = std::map<UnivariatePolynomial<Coefficient>, uint>;
+struct UnivariatePolynomialLess;
+
+template<typename Coefficient>
+using FactorMap = std::map<UnivariatePolynomial<Coefficient>, uint, UnivariatePolynomialLess<Coefficient>>;
 }  // namespace carl
 
 #include "DivisionResult.h"
@@ -1207,36 +1210,16 @@ class UnivariatePolynomial : public Polynomial {
     }
 };
 
-}  // namespace carl
-
-namespace std {
 /**
- * Specialization of `std::hash` for univariate polynomials.
+ * Comparator for univariate polynomials with respect to a PolynomialComparisonOrder.
+ *
+ * This is deliberately not a specialization of `std::less`: libc++ assumes `std::less<T>` to be stateless and
+ * equivalent to `operator<`, and replaces it by `std::less<>` within associative containers.
  */
 template<typename Coefficient>
-struct hash<carl::UnivariatePolynomial<Coefficient>> {
-    /**
-     * Calculates the hash of univariate polynomial.
-     * @param p UnivariatePolynomial.
-     * @return Hash of p.
-     */
-    std::size_t operator()(const carl::UnivariatePolynomial<Coefficient>& p) const {
-        std::size_t result = 0;
-        std::hash<Coefficient> h;
-        for (auto c : p.coefficients()) {
-            result ^= h(c);
-        }
-        return result;
-    }
-};
-
-/**
- * Specialization of `std::less` for univariate polynomials.
- */
-template<typename Coefficient>
-struct less<carl::UnivariatePolynomial<Coefficient>> {
+struct UnivariatePolynomialLess {
     carl::PolynomialComparisonOrder order;
-    explicit less(carl::PolynomialComparisonOrder _order = carl::PolynomialComparisonOrder::Default) noexcept : order(_order) {}
+    explicit UnivariatePolynomialLess(carl::PolynomialComparisonOrder _order = carl::PolynomialComparisonOrder::Default) noexcept : order(_order) {}
     /**
      * Compares two univariate polynomials.
      * @param lhs First polynomial.
@@ -1267,6 +1250,29 @@ struct less<carl::UnivariatePolynomial<Coefficient>> {
      */
     bool operator()(const carl::UnivariatePolynomialPtr<Coefficient>& lhs, const carl::UnivariatePolynomialPtr<Coefficient>& rhs) const {
         return (*this)(lhs.get(), rhs.get());
+    }
+};
+
+}  // namespace carl
+
+namespace std {
+/**
+ * Specialization of `std::hash` for univariate polynomials.
+ */
+template<typename Coefficient>
+struct hash<carl::UnivariatePolynomial<Coefficient>> {
+    /**
+     * Calculates the hash of univariate polynomial.
+     * @param p UnivariatePolynomial.
+     * @return Hash of p.
+     */
+    std::size_t operator()(const carl::UnivariatePolynomial<Coefficient>& p) const {
+        std::size_t result = 0;
+        std::hash<Coefficient> h;
+        for (auto c : p.coefficients()) {
+            result ^= h(c);
+        }
+        return result;
     }
 };
 

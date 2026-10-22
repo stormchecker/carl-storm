@@ -61,7 +61,7 @@ class AbstractRootFinder {
      */
     bool mFinished;
 #ifdef ROOTFINDER_CACHE
-    static std::map<UnivariatePolynomial<Number>, std::vector<RealAlgebraicNumber<Number>>> cache;
+    static std::map<UnivariatePolynomial<Number>, std::vector<RealAlgebraicNumber<Number>>, UnivariatePolynomialLess<Number>> cache;
 #endif
 
    public:
@@ -190,7 +190,7 @@ class AbstractRootFinder {
 
 #ifdef ROOTFINDER_CACHE
 template<typename Number>
-std::map<UnivariatePolynomial<Number>, std::vector<RealAlgebraicNumber<Number>>> AbstractRootFinder<Number>::cache;
+std::map<UnivariatePolynomial<Number>, std::vector<RealAlgebraicNumber<Number>>, UnivariatePolynomialLess<Number>> AbstractRootFinder<Number>::cache;
 #endif
 
 }  // namespace rootfinder
