@@ -153,6 +153,10 @@ jobs:
 
   deploy:
     name: Test and Deploy
+    # Run deployments for the same branch in sequence to ensure correct deployment
+    concurrency:
+      group: deploy-${{ github.ref }}
+      cancel-in-progress: false
     uses: stormchecker/ci-workflows/.github/workflows/release_docker.yml@v1
     permissions:
       contents: read
