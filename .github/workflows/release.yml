@@ -55,3 +55,15 @@ jobs:
       carl_version: ${{ github.event.release.tag_name }}
     secrets:
       personal_access_token: ${{ secrets.CI_token }}
+
+  notify:
+    name: Email notification
+    needs: [deploy_docker, update_stable, update_storm]
+    # Only run in main repo and even if previous step failed
+    if: github.repository_owner == 'stormchecker' && always()
+    uses: stormchecker/ci-workflows/.github/workflows/notify_email.yml@v1
+    with:
+      title: Release
+    secrets: inherit
+    permissions:
+      actions: read
