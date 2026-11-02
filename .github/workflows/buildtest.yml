@@ -1,11 +1,12 @@
 name: Build Test
 # Builds and tests carl-storm on various platforms
-# also deploys images to Dockerhub
+# also deploys images to Dockerhub (master as 'ci', stable as 'stable')
 
 on:
   push:
     branches:
       - master
+      - stable
   schedule:
     # run weekly
     - cron: '0 10 * * 2'
@@ -78,13 +79,6 @@ jobs:
         distro: ["debian-12", "ubuntu-24.04", "debian-13", "minimal_dependencies"]
         build_type: ["Debug", "Release"]
         runner: [ubuntu-latest]
-        include:
-          - distro: "latest"
-            runner: ubuntu-24.04-arm
-            build_type: "Debug"
-          - distro: "latest"
-            runner: ubuntu-24.04-arm
-            build_type: "Release"
 
     steps:
       - name: Git clone
@@ -154,72 +148,38 @@ jobs:
         run: make -j ${NR_JOBS}
       - name: Run tests
         working-directory: ./build
-        run: ctest test--output-on-failure
+        run: ctest test --output-on-failure
 
 
   deploy:
-    name: Test and Deploy (${{ matrix.build_type.name }})
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        build_type:
-          - {name: "Debug",
-             dockerTag: "ci-debug",
-             baseImg: "storm-basesystem:latest"
-            }
-          - {name: "Release",
-             dockerTag: "ci",
-             baseImg: "storm-basesystem:latest"
-            }
-    steps:
-      - name: Git clone
-        uses: actions/checkout@v7
-      - name: Build Carl-storm from Dockerfile
-        run: |
-          docker build -t movesrwth/carl-storm:${{ matrix.build_type.dockerTag }} . \
-            --build-arg BASE_IMAGE=movesrwth/${{ matrix.build_type.baseImg }} \
-            --build-arg build_type="${{ matrix.build_type.name }}" \
-            --build-arg cmake_args="-DCARL_WARNING_AS_ERROR=ON" \
-            --build-arg no_threads=${NR_JOBS}
-      - name: Run Docker
-        run: docker run -d -it --name ci movesrwth/carl-storm:${{ matrix.build_type.dockerTag }}
-      - name: Build tests
-        run: docker exec ci bash -c "cd /opt/carl/build; make -j ${NR_JOBS}"
-      - name: Run tests
-        run: docker exec ci bash -c "cd /opt/carl/build; ctest test --output-on-failure"
-      - name: Login into docker
-        # Only login if using master on original repo (and not for pull requests or forks)
-        if: github.repository_owner == 'stormchecker' && github.ref == 'refs/heads/master'
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.STORM_CI_DOCKER_USERNAME }}
-          password: ${{ secrets.STORM_CI_DOCKER_TOKEN }}
-      - name: Deploy carl
-        # Only deploy if using master on original repo (and not for pull requests or forks)
-        if: github.repository_owner == 'stormchecker' && github.ref == 'refs/heads/master'
-        run: |
-          docker commit ci movesrwth/carl-storm:${{ matrix.build_type.dockerTag }}
-          docker push movesrwth/carl-storm:${{ matrix.build_type.dockerTag }}
+    name: Test and Deploy
+    # Run deployments for the same branch in sequence to ensure correct deployment
+    concurrency:
+      group: deploy-${{ github.ref }}
+      cancel-in-progress: false
+    uses: stormchecker/ci-workflows/.github/workflows/release_docker.yml@v1
+    permissions:
+      contents: read
+      id-token: write  # to sign the provenance of the images
+    with:
+      image: movesrwth/carl-storm
+      tag: ${{ github.ref == 'refs/heads/stable' && 'stable' || 'ci' }}
+      # Always build and test, but only deploy master/stable (and not for pull requests). Check for forks is done in the shared workflow.
+      push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable') }}
+      build_args: |
+        BASE_IMAGE=movesrwth/storm-basesystem:latest
+        cmake_args=-DCARL_WARNING_AS_ERROR=ON
+        run_tests=ON
+    secrets: inherit
 
   notify:
     name: Email notification
-    runs-on: ubuntu-latest
     needs: [compilerTests, linuxTests, macTests, deploy]
     # Only run in main repo and even if previous step failed
     if: github.repository_owner == 'stormchecker' && always()
-    steps:
-      - uses: technote-space/workflow-conclusion-action@v3
-      - uses: dawidd6/action-send-mail@v23
-        with:
-          server_address: ${{ secrets.STORM_CI_MAIL_SERVER }}
-          server_port: 587
-          username: ${{ secrets.STORM_CI_MAIL_USERNAME }}
-          password: ${{ secrets.STORM_CI_MAIL_PASSWORD }}
-          subject: "[You broke it] CI run failed for ${{ github.repository }}"
-          body:
-            "CI job of ${{ github.repository }} has failed for commit ${{ github.sha }}.\n\
-            The error type is: ${{ env.WORKFLOW_CONCLUSION }}.\n\n\
-            For more information, see https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          to: ${{ secrets.STORM_CI_MAIL_RECIPIENTS }}
-          from: Github Actions <you-broke-it@stormchecker.org>
-        if: env.WORKFLOW_CONCLUSION != 'success' # notify only if failure
+    uses: stormchecker/ci-workflows/.github/workflows/notify_email.yml@v1
+    with:
+      title: Build Test
+    secrets: inherit
+    permissions:
+      actions: read

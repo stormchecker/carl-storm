@@ -22,6 +22,8 @@ ARG build_type=Release
 ARG no_threads=2
 # Specify additional CMake arguments
 ARG cmake_args=""
+# Whether to build and run the tests
+ARG run_tests=OFF
 
 # Build Carl-storm
 ##################
@@ -44,8 +46,7 @@ RUN cmake -DCMAKE_BUILD_TYPE=$build_type \
 RUN make lib_carl -j $no_threads
 
 
-# Additional commands
-# (This can be skipped or adapted depending on custom needs)
-# Build and execute tests
-#RUN make -j $no_threads
-#RUN ctest test --output-on-failure
+# Build and execute tests (if required)
+RUN if [ "$run_tests" = "ON" ]; then \
+      make -j $no_threads && ctest test --output-on-failure; \
+    fi
