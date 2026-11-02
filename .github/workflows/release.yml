@@ -1,7 +1,7 @@
 name: Release new version
 # Triggered by new a release on Github
 # - deploys Docker containers
-# - updates stable branch
+# - updates stable branch (which also triggers the build of the 'stable' Docker containers)
 # - updates carl-storm version in Storm
 
 # Needs personal access token CI_token with permissions 'pull-requests' and 'workflows'
@@ -13,10 +13,16 @@ on:
 jobs:
   deploy_docker:
     # Create Docker images for tag
-    uses: ./.github/workflows/release_docker.yml
+    uses: stormchecker/ci-workflows/.github/workflows/release_docker.yml@v1
+    permissions:
+      contents: read
+      id-token: write  # to sign the provenance of the images
     with:
+      image: movesrwth/carl-storm
       # Use the tag from the release
       tag: ${{ github.event.release.tag_name }}
+      build_args: |
+        BASE_IMAGE=movesrwth/storm-basesystem:latest
     secrets: inherit
 
   update_stable:
@@ -24,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
       - name: Git clone
         uses: actions/checkout@v7
@@ -38,18 +45,15 @@ jobs:
           git checkout stable
           git rebase ${{ github.event.release.tag_name }}
           git push origin stable
-
-  deploy_docker_stable:
-    # Create Docker images for stable branch
-    needs: update_stable
-    uses: ./.github/workflows/release_docker.yml
-    with:
-      tag: stable
-    secrets: inherit
+      - name: Trigger Build Test for stable
+        # Pushes using the GITHUB_TOKEN do not trigger workflows, so trigger the Build Test (which deploys the 'stable' Docker images) manually
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run buildtest.yml --repo ${{ github.repository }} --ref stable
 
   update_storm:
     # Trigger generation of PR in Storm which updates the carl-storm version
-    needs: [deploy_docker, deploy_docker_stable]
+    needs: [deploy_docker, update_stable]
     uses: stormchecker/storm/.github/workflows/update_carl.yml@master
     with:
       carl_version: ${{ github.event.release.tag_name }}
