@@ -6,7 +6,7 @@
 # --build-arg BASE_IMAGE=<new_base_image>
 
 # Set base image
-ARG BASE_IMAGE=movesrwth/storm-basesystem:latest
+ARG BASE_IMAGE=ghcr.io/stormchecker/storm-basesystem:latest
 FROM $BASE_IMAGE
 LABEL org.opencontainers.image.authors="dev@stormchecker.org"
 
@@ -48,5 +48,5 @@ RUN make lib_carl -j $no_threads
 
 # Build and execute tests (if required)
 RUN if [ "$run_tests" = "ON" ]; then \
-      make -j $no_threads && ctest test --output-on-failure; \
+      make -j $no_threads && ctest --output-on-failure; \
     fi

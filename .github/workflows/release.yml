@@ -13,16 +13,19 @@ on:
 jobs:
   deploy_docker:
     # Create Docker images for tag
-    uses: stormchecker/ci-workflows/.github/workflows/release_docker.yml@v1
+    uses: stormchecker/ci-workflows/.github/workflows/release_docker.yml@v2
     permissions:
       contents: read
+      packages: write  # to push to GHCR
       id-token: write  # to sign the provenance of the images
     with:
-      image: movesrwth/carl-storm
+      image: |
+        ghcr.io/stormchecker/carl-storm
+        movesrwth/carl-storm
       # Use the tag from the release
       tag: ${{ github.event.release.tag_name }}
       build_args: |
-        BASE_IMAGE=movesrwth/storm-basesystem:latest
+        BASE_IMAGE=ghcr.io/stormchecker/storm-basesystem:latest
     secrets: inherit
 
   update_stable:
@@ -38,12 +41,15 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
       - name: Rebase
+        # The tag is passed via an environment variable to avoid shell injection
+        env:
+          TAG: ${{ github.event.release.tag_name }}
         run: |
           git config user.name 'Stormchecker bot'
           git config user.email 'dev@stormchecker.org'
           git fetch origin stable
           git checkout stable
-          git rebase ${{ github.event.release.tag_name }}
+          git rebase "$TAG"
           git push origin stable
       - name: Trigger Build Test for stable
         # Pushes using the GITHUB_TOKEN do not trigger workflows, so trigger the Build Test (which deploys the 'stable' Docker images) manually
@@ -65,7 +71,7 @@ jobs:
     needs: [deploy_docker, update_stable, update_storm]
     # Only run in main repo and even if previous step failed
     if: github.repository_owner == 'stormchecker' && always()
-    uses: stormchecker/ci-workflows/.github/workflows/notify_email.yml@v1
+    uses: stormchecker/ci-workflows/.github/workflows/notify_email.yml@v2
     with:
       title: Release
     secrets: inherit
