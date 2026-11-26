@@ -13,16 +13,19 @@ on:
 jobs:
   deploy_docker:
     # Create Docker images for tag
-    uses: stormchecker/ci-workflows/.github/workflows/release_docker.yml@v1
+    uses: stormchecker/ci-workflows/.github/workflows/release_docker.yml@v2
     permissions:
       contents: read
+      packages: write  # to push to GHCR
       id-token: write  # to sign the provenance of the images
     with:
-      image: movesrwth/carl-storm
+      image: |
+        ghcr.io/stormchecker/carl-storm
+        movesrwth/carl-storm
       # Use the tag from the release
       tag: ${{ github.event.release.tag_name }}
       build_args: |
-        BASE_IMAGE=movesrwth/storm-basesystem:latest
+        BASE_IMAGE=ghcr.io/stormchecker/storm-basesystem:latest
     secrets: inherit
 
   update_stable:

@@ -6,7 +6,7 @@
 # --build-arg BASE_IMAGE=<new_base_image>
 
 # Set base image
-ARG BASE_IMAGE=movesrwth/storm-basesystem:latest
+ARG BASE_IMAGE=ghcr.io/stormchecker/storm-basesystem:latest
 FROM $BASE_IMAGE
 LABEL org.opencontainers.image.authors="dev@stormchecker.org"
 
