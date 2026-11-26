@@ -68,7 +68,7 @@ jobs:
     needs: [deploy_docker, update_stable, update_storm]
     # Only run in main repo and even if previous step failed
     if: github.repository_owner == 'stormchecker' && always()
-    uses: stormchecker/ci-workflows/.github/workflows/notify_email.yml@v1
+    uses: stormchecker/ci-workflows/.github/workflows/notify_email.yml@v2
     with:
       title: Release
     secrets: inherit
