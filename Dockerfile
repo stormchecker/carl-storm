@@ -48,5 +48,5 @@ RUN make lib_carl -j $no_threads
 
 # Build and execute tests (if required)
 RUN if [ "$run_tests" = "ON" ]; then \
-      make -j $no_threads && ctest test --output-on-failure; \
+      make -j $no_threads && ctest --output-on-failure; \
     fi

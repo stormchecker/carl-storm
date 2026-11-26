@@ -41,12 +41,15 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
       - name: Rebase
+        # The tag is passed via an environment variable to avoid shell injection
+        env:
+          TAG: ${{ github.event.release.tag_name }}
         run: |
           git config user.name 'Stormchecker bot'
           git config user.email 'dev@stormchecker.org'
           git fetch origin stable
           git checkout stable
-          git rebase ${{ github.event.release.tag_name }}
+          git rebase "$TAG"
           git push origin stable
       - name: Trigger Build Test for stable
         # Pushes using the GITHUB_TOKEN do not trigger workflows, so trigger the Build Test (which deploys the 'stable' Docker images) manually
